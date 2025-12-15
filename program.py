@@ -52,14 +52,37 @@ expected = {'capra', 'panca'}
 
 """
 def func1(testo : str, K : int) -> set[str]:
-    s = {word for word in testo.split() if testo.count(word) == K}
-    return s
+    testo_clear=testo.lower()
+    testo_temp=[]
+    parole_temp=""
+    for carattere in testo_clear:
+        if 'a'<= carattere <= 'z':
+            parole_temp+=carattere
+        else:
+            if parole_temp:
+                testo_temp.append(parole_temp)
+            parole_temp=""
+    if parole_temp:
+        testo_temp.append(parole_temp)
+    conteggio={}
+    for parola in testo_temp:
+        conteggio[parola]=conteggio.get(parola,0) + 1
+    ris=set()
+    for parola,cont in conteggio.items():
+        if cont==K:
+            ris.add(parola)
+    return ris
     # completa la funzione
 
 
 # K = 2
-# testo = '''sopra la panca la capra campa, sotto la panca la capra crepa'''
-# expected = {'capra', 'panca'}
+# testo = '''essere o non essere, questo è il dilemma: 
+#                se sia più nobile nella mente soffrire colpi di fionda e dardi d’atroce fortuna 
+#                o prender armi contro un mare d’affanni e, opponendosi, por loro fine? 
+#                morire, dormire; nient’altro; e con un sonno dire che poniamo fine al dolore 
+#                del cuore e ai mille tumulti naturali di cui è erede la carne: 
+#                è una conclusione da desiderarsi devotamente'''
+# expected = {'fine', 'un', 'di', 'o', 'essere', 'd'}
 # print(func1(testo,K))
 
 
@@ -182,6 +205,10 @@ e la funzione restituirà:
     {'a': [0, 2], 'b': [0, 2, 3], 'aa': [1, 3]}
 """
 def func4(path_in : str, path_out : str, K : int) -> dict[str, list[str]]:
+    with open(path_in,'r',encoding='utf-8') as f:
+        content=f.read()
+        
+        return content
     pass
     # completa la funzione
 
@@ -207,13 +234,25 @@ e come valori l'insieme delle posizioni dei quadrati 2x2 di quel colore.
 
 Esempio:
 path_png_in = 'func5/in_1.png'
-expected = {'a': [0, 2], 'b': [0, 2, 3], 'aa': [1, 3]}
+expected = {(184, 188, 208): {(11, 1), (8, 9)}}
 """
 import images
 def func5(path_png_in : str) -> dict[str, set[tuple[int,int]]]:
+    img=images.load(path_png_in)
+    diz={}
+    for i,riga in enumerate(img):
+        for j,pixel in enumerate(riga):
+            if j!=0 or j!=len(riga)-1:
+                if pixel!=(0,0,0) and pixel==riga[j+1] and riga[j-1]==(0,0,0) and riga[j+2]==(0,0,0):
+                    if img[i+1][j]==pixel and img[i+1][j+1]==pixel and img[i+1][j-1]==(0,0,0) and img[i+1][j+2]==(0,0,0):
+                        if pixel in diz:
+                            diz[pixel].add((j,i))
+                        else:
+                            diz[pixel]={(j,i)}
+    return {k:v for k,v in diz.items() if len(v)>=2 }
     pass
     # completa la funzione
-
+# print(func5("func5/in_1.png"))
 
 # %% ----------------------------------- EX.1 ----------------------------------- #
 """
@@ -246,7 +285,29 @@ l'albero in output sarà:
 12   15    18
 """
 import tree
+def prodotto_nodo(radice,lista_pesi,pos,nodo):
+    nodo.value=radice.value*lista_pesi[pos]
+
+    if radice.left!=None:
+        prodotto_nodo(radice.left,lista_pesi,pos+1,nodo.left)
+    if radice.right!=None:
+        prodotto_nodo(radice.right,lista_pesi,pos+1,nodo.right)
+    
+    return nodo
+
+def new_tree(nodo):
+    if nodo==None:
+        return None
+    nuovo_nodo=tree.BinaryTree(nodo.value)
+
+    nuovo_nodo.left=new_tree(nodo.left)
+    nuovo_nodo.right=new_tree(nodo.right)
+
+    return nuovo_nodo
+
 def ex1(radice : tree.BinaryTree, lista_pesi:list[int]) -> tree.BinaryTree:
+    albero=new_tree(radice)
+    return prodotto_nodo(radice,lista_pesi,0,albero)
     pass
     # completa la funzione
 
@@ -275,11 +336,26 @@ Esempio:
     expected   = {'txt': {'ex2/A/C', 'ex2/A', 'ex2/A/B'}, 'pdf': {'ex2/A/C', 'ex2/A'}, 'png': {'ex2/A/C'}, 'gif': {'ex2/A/C'}}
 """
 import os
+def ric2(root,lista,lista_estensioni,diz):
+    if len(lista)==0:
+        return diz
+    if os.path.isfile(root+"/"+lista[0]) and "." in lista[0]:
+        if lista[0].split(".")[1] in lista_estensioni:
+            if lista[0].split(".")[1] in diz:
+                diz[lista[0].split(".")[1]].add(root)
+            else:
+                diz[lista[0].split(".")[1]]={root}
+        return ric2(root,lista[1:],lista_estensioni,diz)
+    elif os.path.isdir(root+"/"+lista[0]):
+        ric2(root+"/"+lista[0],os.listdir(root+"/"+lista[0]),lista_estensioni,diz)
+        return ric2(root,lista[1:],lista_estensioni,diz)
 def ex2(path : str, lista_estensioni : list[str]) -> dict[str, list[str]]:
+    diz={}
+    return ric2(path,os.listdir(path),lista_estensioni,diz)
     pass
     # completa la funzione
 
-
+print(ex2('ex2',["png", "gif", "tqq"]))
 
 
 ######################################################################################
